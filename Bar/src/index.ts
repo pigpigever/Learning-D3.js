@@ -11,6 +11,7 @@ import * as d3 from 'd3';
     let xAxis = null
     let yAxis = null
     let marginLeft = 40
+    let marginBottom = 20
 
     const init = () => {
       container = {
@@ -21,7 +22,7 @@ import * as d3 from 'd3';
         width: 30,
         height: 500
       }
-      // 生成随机数组
+      // shuffle
       datasets = Array.from(
         {length: 26},
         (v, i) => ({
@@ -29,8 +30,7 @@ import * as d3 from 'd3';
           value: Math.floor(Math.random() * (bar.height - 10)) + 10
         })
       );
-
-      // 绘制 svg
+      // draw svg container
       svg = d3.select('#bar')
         .append('svg')
         .style('width', container.width)
@@ -38,19 +38,20 @@ import * as d3 from 'd3';
         .attr('class', 'svg')
     };
 
+    // draw axis
     const drawAxis = () => {
-      // 设置 x 轴
+      // xAxis
       xScale = d3.scaleBand()
         .domain(datasets.map(d => d.name))
         .range([0, container.width - marginLeft])
         .padding(0.1)
       xAxis = d3.axisBottom(xScale)
       svg.append('g')
-        .attr('transform', `translate(${marginLeft}, ${container.height - 20})`)
+        .attr('transform', `translate(${marginLeft}, ${container.height - marginBottom})`)
         .attr('class', 'xAxis')
         .call(xAxis)
 
-      // 设置 y 轴
+      // yAxis
       yScale = d3
         .scaleLinear()
         .domain([0, 500])
@@ -68,92 +69,76 @@ import * as d3 from 'd3';
         .attr("stroke-opacity", 0.1)
     };
 
-    const shuffle = arr => {
-      let i = arr.length;
-      while (i) {
-        let j = Math.floor(Math.random() * i);
-        let t = arr[--i];
-        arr[i] = arr[j];
-        arr[j] = t;
-      }
-      return arr;
-    };
-
+    // sort bar
     const sort = (e) => {
-        const prevDomain = xScale.domain();
-        const type = e.target.value
-        let sortDatasets = datasets.slice()
+      const type = e.target.value
+      const preXScale = xScale.copy()
 
-        if (type === 'random') {
-          shuffle(sortDatasets)
-        } else {
-          sortDatasets.sort((a, b) => type === 'desc' ? b.value - a.value : a.value - b.value);
-        }
+      if (type === 'random') {
+        d3.shuffle(datasets)
+      } else {
+        datasets.sort((a, b) => type === 'desc' ? b.value - a.value : a.value - b.value);
+      }
 
-        const preXScale = xScale.copy()
-        xScale = xScale.domain(sortDatasets.map(d => d.name)).range([0, container.width - marginLeft])
+      // reset xScale
+      const domain = datasets.map(d => d.name)
+      xScale.domain(domain).range([0, container.width - marginLeft])
 
-        svg.selectAll('.rects').selectAll('rect')
-          .data(sortDatasets.map(d => d.value), function (d, i) {
-            return this.tagName === 'rect' ? this.key : `${this.tagName}-${i}`
-          })
-          .join(
-            enter => {
-              return enter
-                .append('rect')
-                .attr('fill', 'steelblue')
-                .style("mix-blend-mode", "multiply")
-                .attr('y', d => bar.height - d)
-                .attr('width', xScale.bandwidth())
-                .attr('height', (d, i) => {
-                  return sortDatasets[i].value
-                })
-            },
-            update => update,
-            exit => exit
-              .attr("y", yScale(0))
-              .attr("height", 0)
-              .remove()
-              .remove()
-          )
+      svg.selectAll('.rects')
+        .selectAll('rect')
+        .data(datasets.map(d => d.value), function (d, i) {
+          // add key in order to trigger enter and exit
+          return this.tagName === 'rect' ? this.key : `${this.tagName}-${i}`
+        })
+        .join(
+          enter => {
+            return enter
+              .append('rect')
+              .attr('fill', 'steelblue')
+              .style("mix-blend-mode", "multiply")
+              .attr('y', d => bar.height - d)
+              .attr('width', xScale.bandwidth())
+              .attr('height', (d, i) => {
+                return datasets[i].value
+              })
+          },
+          update => update,
+          exit => exit
+            .attr("y", yScale(0))
+            .attr("height", 0)
+            .remove()
+        )
 
-        svg.selectAll('.xAxis')
-          .transition()
-          .ease(d3.easeCubic)
-          .duration(1000)
-          .call(xAxis)
-
-      svg.selectAll('.yAxis')
+      // add transition for xAxis
+      svg.selectAll('.xAxis')
         .transition()
         .ease(d3.easeCubic)
         .duration(1000)
-        .call(yAxis)
+        .call(xAxis)
 
-        svg.selectAll('.rects').selectAll('rect')
-          .attr('x', (d, i) => {
-            return preXScale(xScale.domain()[i])
-          })
-          .transition()
-          .delay((d, i) => i * 20)
-          .duration(1000)
-          .attr('x', (d, i) => {
-            return xScale(xScale.domain()[i])
-          })
-          .attr('y', d => yScale(d))
-          .attr('width', xScale.bandwidth())
-          .attr('height', (d, i) => sortDatasets[i].value)
-
-        datasets = sortDatasets.slice()
-      }
-    ;
+      // add transition for rects
+      svg.selectAll('.rects')
+        .selectAll('rect')
+        .attr('x', (d, i) => {
+          return preXScale(domain[i])
+        })
+        .transition()
+        .delay((d, i) => i * 20)
+        .duration(1000)
+        .attr('x', (d, i) => xScale(domain[i]))
+        .attr('y', d => yScale(d))
+        .attr('width', xScale.bandwidth())
+        .attr('height', (d, i) => datasets[i].value)
+    };
 
     const registerEvents = () => {
       d3.select('#sort').on('change', sort)
     }
 
+    // draw rect
     const drawRect = () => {
       const domain = xScale.domain()
-      // 设置 rect
+
       svg.append('g')
         .classed('rects', true)
         .attr('transform', `translate(${marginLeft}, 80)`)
@@ -163,7 +148,7 @@ import * as d3 from 'd3';
         .enter()
         .append('rect')
         .attr('x', (d, i) => xScale(domain[i]))
-        .attr('y', (d, i) => bar.height)
+        .attr('y', bar.height)
         .attr('width', xScale.bandwidth())
         .style("mix-blend-mode", "multiply")
         .attr('fill', 'steelblue')
@@ -172,7 +157,7 @@ import * as d3 from 'd3';
         .ease(d3.easeCubic)
         .duration(1000)
         .attr('height', (d, i) => datasets[i].value)
-        .attr('y', (d, i) => bar.height - d)
+        .attr('y', d => bar.height - d)
 
       svg.selectAll('.xAxis .tick')
         .append('text')
@@ -192,5 +177,4 @@ import * as d3 from 'd3';
     drawRect();
     registerEvents()
   }
-)
-()
+)()
