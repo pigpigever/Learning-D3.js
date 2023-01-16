@@ -1,0 +1,21 @@
+{
+  "name": "d3-bar",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "source": "index.html",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel": "^2.8.2"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.0",
+    "d3": "^7.8.0"
+  }
+}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bar</title>
+    <link rel="stylesheet" href="./src/index.css">
+</head>
+<body>
+    <div id="container">
+        <div id="bar"></div>
+        <div class="action">
+            <span>order：</span>
+            <select name="sort" id="sort">
+                <option value="random">random</option>
+                <option value="asc">asc</option>
+                <option value="desc">desc</option>
+            </select>
+        </div>
+    </div>
+</body>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script type="module" src="./src/index.ts"></script>
+</html>
