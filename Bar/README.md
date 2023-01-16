@@ -1,5 +1,3 @@
-## Start
-
 ### How to run the project
 
 1. install dependencies
