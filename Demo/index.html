@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>d3 bar</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+</body>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  function randomLetters() {
+    return d3.shuffle(d3.shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')).slice(0, Math.floor(Math.random() * 26)).sort())
+  }
+  ;(async () => {
+    const width = 400
+    const svg = d3.create("svg")
+      .attr("width", width)
+      .attr("height", 33)
+      .attr("viewBox", `0 -20 ${width} 33`);
+
+    while (true) {
+      const t = svg.transition()
+        .duration(750);
+
+      svg.selectAll("text")
+        .data(randomLetters(), d => d)
+        .join(
+          enter => enter.append("text")
+            .attr("fill", "green")
+            .attr("x", (d, i) => i * 16)
+            .attr("y", -30)
+            .text(d => d)
+            .call(enter => enter.transition(t)
+              .attr("y", 0)),
+          update => update
+            .attr("fill", "red")
+            .attr("y", 0)
+            .call(update => update.transition(t)
+              .attr("x", (d, i) => i * 16)),
+          exit => exit
+            .attr("fill", "gold")
+            .call(exit => exit.transition(t)
+              .attr("y", 30)
+              .remove())
+        );
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      document.body.appendChild(svg.node());
+    }
+  })()
+
+</script>
+</html>
