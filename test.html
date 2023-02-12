@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>Bar</title>
+    <style>
+        #bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="bar"></div>
+</body>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+
+  const width = 800;
+  const height = 600;
+  const data = Array.from({length: 26}).map((_, i) => ({
+    name: String.fromCharCode(65 + i),
+    value: Math.random() * 100
+  }))
+
+  const svg = d3.select('#bar')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', [-100, -50, width, height])
+
+  // draw xAxis
+  const xScale = d3.scaleBand().domain(data.map(item => item.name)).range([0, 500]).padding(0.1)
+  const xAxis = d3.axisBottom(xScale)
+  // svg.append('g').call(xAxis)
+  svg.append('g').attr('transform', `translate(0, 500)`).call(xAxis)
+
+  // draw yAxis
+  const yScale = d3.scaleLinear().domain([0, 100]).range([500, 0])
+  const yAxis = d3.axisLeft(yScale)
+  svg.append('g').call(yAxis)
+  //
+  //
+  //   // draw bar
+  svg.selectAll('rect')
+    .data(data)
+    .join('rect')
+    // 设置 x 坐标，防止动画时出现抖动
+    .attr('x', item => xScale(item.name))
+    .attr('y', 500)
+    // 设置宽度，柱状图的宽度在这里一直保持不变即可
+    .attr('width', xScale.bandwidth())
+    // 为了有动画效果，这里先设置高度为 0
+    .attr('height', 0)
+    .transition()
+    // 设置延迟
+    .delay((item, i) => i * 20)
+    // 添加动画函数
+    .ease(d3.easeCubic)
+    // 设置动画时长
+    .duration(1000)
+    // 最终的效果
+    .attr('y', item => yScale(item.value))
+    .attr('height', item => 500 - yScale(item.value))
+    .attr('fill', 'steelblue')
+
+</script>
+</html>

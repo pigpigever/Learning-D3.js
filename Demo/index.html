@@ -22,7 +22,10 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
   function randomLetters() {
-    return d3.shuffle(d3.shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')).slice(0, Math.floor(Math.random() * 26)).sort())
+    return d3
+      .shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''))
+      .slice(0, Math.ceil(Math.random() * 26))
+      .sort()
   }
   ;(async () => {
     const width = 400
@@ -31,25 +34,34 @@
       .attr("height", 33)
       .attr("viewBox", `0 -20 ${width} 33`);
 
+    console.info('d3 selection', d3.Selection)
+
     while (true) {
       const t = svg.transition()
         .duration(750);
 
       svg.selectAll("text")
+        // 绑定数据
         .data(randomLetters(), d => d)
         .join(
+          // 设置新增的字符
           enter => enter.append("text")
+            // 设置颜色
             .attr("fill", "green")
+            // 设置位置
             .attr("x", (d, i) => i * 16)
             .attr("y", -30)
+            // 设置字符到节点上
             .text(d => d)
             .call(enter => enter.transition(t)
               .attr("y", 0)),
+          // 设置更新的字符
           update => update
             .attr("fill", "red")
             .attr("y", 0)
             .call(update => update.transition(t)
               .attr("x", (d, i) => i * 16)),
+            // 设置删除的字符
           exit => exit
             .attr("fill", "gold")
             .call(exit => exit.transition(t)
